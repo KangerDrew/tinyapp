@@ -44,7 +44,12 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  const newShort = generateRandomString()
+  let newShort = generateRandomString()
+  // Use while loop to get new shortURL until it returns undefined
+  // to prevent using same shortURL!
+  while (urlDatabase[newShort] !== undefined) {
+    newShort = generateRandomString()
+  }
   urlDatabase[newShort] = req.body.longURL;
   res.redirect(`/urls/${newShort}`);         // Respond with 'Ok' (we will replace this)
 });
@@ -68,7 +73,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 // This edits the existing shortURL from the urlDatabase!
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  urlDatabase[req.params.shortURL] = req.body.newLongURL;
   res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
 
