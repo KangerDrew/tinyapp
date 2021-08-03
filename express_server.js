@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const bodyParser = require("body-parser");
 app.use(express.urlencoded({extended: true}));
 const PORT = 8080; // default port 8080
 
@@ -45,7 +44,9 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const newShort = generateRandomString()
+  urlDatabase[newShort] = req.body.longURL;
+  res.redirect(`/urls/${newShort}`);         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -53,9 +54,17 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.status(404);
+    res.send("The short link is invalid!"); 
+  } else {
+    res.redirect(urlDatabase[req.params.shortURL]);
+  }
+
+});
 
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
