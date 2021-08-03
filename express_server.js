@@ -49,6 +49,15 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShort}`);         // Respond with 'Ok' (we will replace this)
 });
 
+
+// This deletes the existing shortURL from the urlDatabase!
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const toDelete = req.params.shortURL;
+  delete urlDatabase[toDelete];
+  res.redirect('/urls');
+});
+
+
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
