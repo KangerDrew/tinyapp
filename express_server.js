@@ -50,13 +50,6 @@ app.post("/urls", (req, res) => {
 });
 
 
-// This deletes the existing shortURL from the urlDatabase!
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const toDelete = req.params.shortURL;
-  delete urlDatabase[toDelete];
-  res.redirect('/urls');
-});
-
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
@@ -70,9 +63,23 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     res.redirect(urlDatabase[req.params.shortURL]);
   }
-
 });
 
+
+// This edits the existing shortURL from the urlDatabase!
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
+});
+
+
+
+// This deletes the existing shortURL from the urlDatabase!
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const toDelete = req.params.shortURL;
+  delete urlDatabase[toDelete];
+  res.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
