@@ -33,6 +33,11 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = { newID: req.cookies.newID };
+  res.render("urls_registration", templateVars)
+});
+
 // Random test for returning hyperlink
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
