@@ -13,6 +13,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+
 const generateRandomString = function() {
   let res = '';
   const char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -34,7 +48,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { newID: req.cookies.newID };
+  const templateVars = { user_id: req.cookies.user_id };
   res.render("urls_registration", templateVars)
 });
 
@@ -46,25 +60,25 @@ app.get("/hello", (req, res) => {
 // This is the home page
 // This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, newID: req.cookies.newID };
+  const templateVars = { urls: urlDatabase, user_id: req.cookies.user_id };
   res.render("urls_index", templateVars);
 });
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
-  const templateVars = { newID: req.cookies.newID }
+  const templateVars = { user_id: req.cookies.user_id }
   res.render("urls_new", templateVars);
 });
 
 // To store the login info using cookies
 app.post('/login', (req,res) => {
-  res.cookie('newID',req.body.newID);
+  res.cookie('user_id',req.body.user_id);
   res.redirect('/urls')
 })
 
 // Delete existing cookie to logout
 app.post('/logout', (req, res) => {
-  res.clearCookie('newID');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 })
 
@@ -86,7 +100,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    newID: req.cookies.newID };
+    user_id: req.cookies.user_id };
   res.render("urls_show", templateVars);
 });
 
@@ -114,6 +128,28 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const toDelete = req.params.shortURL;
   delete urlDatabase[toDelete];
   res.redirect('/urls');
+});
+
+// This is to store registration information inside the 
+// users object.
+app.post("/register", (req, res) => {
+  let randID = generateRandomString();
+  // Same as we did for shortURL, we need while loop
+  // to reset randID if it already exists within users object:
+  while (users[randID] !== undefined) {
+    randID = generateRandomString()
+  }
+  const user = {
+    "id": randID,
+    "email": req.body.email,
+    "password": req.body.password
+  };
+
+  users[randID] = user;
+
+  res.cookie('user_id', randID);
+  res.redirect('/urls');
+
 });
 
 
