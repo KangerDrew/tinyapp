@@ -53,8 +53,12 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id, users: users };
-  res.render("urls_login", templateVars)
+  if (req.cookies.user_id !== undefined) {
+    res.redirect('/')
+  } else {
+    const templateVars = { user_id: req.cookies.user_id, users: users };
+    res.render("urls_login", templateVars)
+  } 
 });
 
 // Random test for returning hyperlink
