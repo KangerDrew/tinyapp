@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({extended: true}));
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
 const PORT = 8080; // default port 8080
 
-app.set("view engine", "ejs");
 
+app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -21,26 +23,37 @@ const generateRandomString = function() {
   return res;
 };
 
+// Takes you to the "main page" with all the urls.
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect('/urls');
 });
 
+// Returns the urlDatabase object
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// Random test for returning hyperlink
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// This is the home page
+// This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
+// This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+
+// To store the login info using cookies
+app.post('/login', (req,res) => {
+
+})
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
