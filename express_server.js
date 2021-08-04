@@ -48,7 +48,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id };
+  const templateVars = { user_id: req.cookies.user_id, users: users };
   res.render("urls_registration", templateVars)
 });
 
@@ -60,13 +60,13 @@ app.get("/hello", (req, res) => {
 // This is the home page
 // This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user_id: req.cookies.user_id };
+  const templateVars = { urls: urlDatabase, user_id: req.cookies.user_id, users: users };
   res.render("urls_index", templateVars);
 });
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id }
+  const templateVars = { user_id: req.cookies.user_id, users: users }
   res.render("urls_new", templateVars);
 });
 
@@ -100,7 +100,8 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user_id: req.cookies.user_id };
+    user_id: req.cookies.user_id,
+    users: users };
   res.render("urls_show", templateVars);
 });
 
