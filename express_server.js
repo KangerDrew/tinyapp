@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({extended: true}));
-const cookieParser = require('cookie-parser')
-app.use(cookieParser())
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 const PORT = 8080; // default port 8080
 
 
@@ -41,22 +41,31 @@ app.get("/hello", (req, res) => {
 // This is the home page
 // This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, newID: req.cookies.newID };
   res.render("urls_index", templateVars);
 });
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { newID: req.cookies.newID }
+  res.render("urls_new", templateVars);
 });
 
 // To store the login info using cookies
 app.post('/login', (req,res) => {
-
+  res.cookie('newID',req.body.newID);
+  res.redirect('/urls')
 })
 
+// Delete existing cookie to logout
+app.post('/logout', (req, res) => {
+  res.clearCookie('newID');
+  res.redirect('/urls');
+})
+
+// This is for the POST method that stores the generates new short
+// links and saves them into the urlDatabase.
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
   let newShort = generateRandomString()
   // Use while loop to get new shortURL until it returns undefined
   // to prevent using same shortURL!
@@ -68,12 +77,15 @@ app.post("/urls", (req, res) => {
 });
 
 
-
+// This retrieves the info from the urlDatabase to be displayed on urls/shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    newID: req.cookie.newID };
   res.render("urls_show", templateVars);
 });
 
+// This redirects to the longURL when the user clicks the shortURL
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.status(404);
@@ -99,6 +111,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
+
+// Server starts
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
