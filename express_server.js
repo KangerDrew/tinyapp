@@ -52,6 +52,11 @@ app.get("/register", (req, res) => {
   res.render("urls_registration", templateVars)
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = { user_id: req.cookies.user_id, users: users };
+  res.render("urls_login", templateVars)
+});
+
 // Random test for returning hyperlink
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
@@ -72,8 +77,17 @@ app.get("/urls/new", (req, res) => {
 
 // To store the login info using cookies
 app.post('/login', (req,res) => {
-  res.cookie('user_id',req.body.user_id);
-  res.redirect('/urls')
+
+  for (const user in users) {
+    if(users[user].email === req.body.email && users[user].password === req.body.password) {
+      res.cookie('user_id', users[user].id);
+      return res.redirect('/urls')
+    }
+  }
+  res.status(403);
+  res.send("Invalid email/password"); 
+
+  //
 })
 
 // Delete existing cookie to logout
