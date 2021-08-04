@@ -98,15 +98,23 @@ app.post("/urls", (req, res) => {
 
 // This retrieves the info from the urlDatabase to be displayed on urls/shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
-    user_id: req.cookies.user_id,
-    users: users };
-  res.render("urls_show", templateVars);
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.status(404);
+    res.send("The short link is invalid!"); 
+  } else {
+    const templateVars = { shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL],
+      user_id: req.cookies.user_id,
+      users: users };
+    res.render("urls_show", templateVars);
+  }
+  
 });
+
 
 // This redirects to the longURL when the user clicks the shortURL
 app.get("/u/:shortURL", (req, res) => {
+  console.log('testing');
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.status(404);
     res.send("The short link is invalid!"); 
@@ -134,6 +142,17 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // This is to store registration information inside the 
 // users object.
 app.post("/register", (req, res) => {
+  if(req.body.email === "" || req.body.password === "") {
+    res.status(400);
+    res.send("Please input email/password!"); 
+  }
+  for (const user in users) {
+    if(users[user].email === req.body.email) {
+      res.status(400);
+      res.send("Email already in use!"); 
+    }
+  }
+
   let randID = generateRandomString();
   // Same as we did for shortURL, we need while loop
   // to reset randID if it already exists within users object:
