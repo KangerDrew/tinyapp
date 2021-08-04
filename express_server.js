@@ -9,8 +9,14 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "userRandomID"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "userRandomID"
+  }
 };
 
 const users = { 
@@ -36,6 +42,7 @@ const generateRandomString = function() {
   }
   return res;
 };
+
 
 // Takes you to the "main page" with all the urls.
 app.get("/", (req, res) => {
@@ -75,8 +82,12 @@ app.get("/urls", (req, res) => {
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id, users: users }
-  res.render("urls_new", templateVars);
+  if (req.cookies.user_id === undefined) {
+    res.redirect('/')
+  } else {
+    const templateVars = { user_id: req.cookies.user_id, users: users }
+    res.render("urls_new", templateVars);
+  }
 });
 
 // To store the login info using cookies
@@ -103,14 +114,31 @@ app.post('/logout', (req, res) => {
 // This is for the POST method that stores the generates new short
 // links and saves them into the urlDatabase.
 app.post("/urls", (req, res) => {
-  let newShort = generateRandomString()
-  // Use while loop to get new shortURL until it returns undefined
-  // to prevent using same shortURL!
-  while (urlDatabase[newShort] !== undefined) {
-    newShort = generateRandomString()
+  
+  // The for loop will compare the cookie user_id value
+  // to see if there's a match with the one in database...
+
+  for(const user in users) {
+    if (user === req.cookies.user_id) {
+      let newShort = generateRandomString()
+      // Use while loop to get new shortURL until it returns undefined
+      // to prevent using same shortURL!
+      while (urlDatabase[newShort] !== undefined) {
+        newShort = generateRandomString()
+      }
+      urlDatabase[newShort] = {
+        "longURL": req.body.longURL,
+        "userID": user
+      };
+      return res.redirect(`/urls/${newShort}`);         // Respond with 'Ok' (we will replace this)
+    }
   }
-  urlDatabase[newShort] = req.body.longURL;
-  res.redirect(`/urls/${newShort}`);         // Respond with 'Ok' (we will replace this)
+
+  // This only triggers if someone attempts to submit links
+  // without logging in as a user.
+  res.status(403);
+  return res.send("Must be logged in to submit links!"); 
+
 });
 
 
@@ -121,7 +149,7 @@ app.get("/urls/:shortURL", (req, res) => {
     res.send("The short link is invalid!"); 
   } else {
     const templateVars = { shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL],
+      longURL: urlDatabase[req.params.shortURL].longURL,
       user_id: req.cookies.user_id,
       users: users };
     res.render("urls_show", templateVars);
@@ -132,19 +160,18 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // This redirects to the longURL when the user clicks the shortURL
 app.get("/u/:shortURL", (req, res) => {
-  console.log('testing');
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.status(404);
     res.send("The short link is invalid!"); 
   } else {
-    res.redirect(urlDatabase[req.params.shortURL]);
+    res.redirect(urlDatabase[req.params.shortURL].longURL);
   }
 });
 
 
 // This edits the existing shortURL from the urlDatabase!
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.newLongURL;
+  urlDatabase[req.params.shortURL].longURL = req.body.newLongURL;
   res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
 
