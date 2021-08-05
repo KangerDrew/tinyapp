@@ -196,6 +196,15 @@ app.get("/u/:shortURL", (req, res) => {
 
 // This edits the existing shortURL from the urlDatabase!
 app.post("/urls/:shortURL", (req, res) => {
+
+  // Checks if the user that's changing the file has
+  // permission or not.
+  
+  if (req.cookies.user_id !== urlDatabase[req.params.shortURL].userID) {
+    res.status(404);
+    return res.send("You do not have permission for that.")
+  }
+
   urlDatabase[req.params.shortURL].longURL = req.body.newLongURL;
   res.redirect(`/urls`);         // Respond with 'Ok' (we will replace this)
 });
@@ -205,6 +214,15 @@ app.post("/urls/:shortURL", (req, res) => {
 // This deletes the existing shortURL from the urlDatabase!
 app.post("/urls/:shortURL/delete", (req, res) => {
   const toDelete = req.params.shortURL;
+
+  // Check if this is indeed the user that has permission
+  // to delete this.
+
+  if (req.cookies.user_id !== urlDatabase[toDelete].userID) {
+    res.status(404);
+    return res.send("You do not have permission for that.")
+  }
+
   delete urlDatabase[toDelete];
   res.redirect('/urls');
 });
