@@ -3,6 +3,7 @@ const app = express();
 app.use(express.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+app.use( express.static( "views" ) );
 const PORT = 8080; // default port 8080
 
 
