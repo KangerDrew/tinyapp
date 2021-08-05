@@ -19,11 +19,21 @@ const urlDatabase = {
   }
 };
 
+const urlForUser = function(user_id) {
+  const retObj = {};
+  for (const short in urlDatabase) {
+    if(urlDatabase[short].userID === user_id) {
+      retObj[short] = urlDatabase[short];
+    }
+  }
+  return retObj;
+}
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "test1"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -76,9 +86,21 @@ app.get("/hello", (req, res) => {
 // This is the home page
 // This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user_id: req.cookies.user_id, users: users };
+  const customDatabase = urlForUser(req.cookies.user_id);
+  const templateVars = { urls: customDatabase, user_id: req.cookies.user_id, users: users };
   res.render("urls_index", templateVars);
 });
+
+
+
+
+
+
+
+
+
+
+
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
@@ -144,7 +166,9 @@ app.post("/urls", (req, res) => {
 
 // This retrieves the info from the urlDatabase to be displayed on urls/shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  if (urlDatabase[req.params.shortURL] === undefined) {
+  
+  const customDatabase = urlForUser(req.cookies.user_id);
+  if (customDatabase[req.params.shortURL] === undefined) {
     res.status(404);
     res.send("The short link is invalid!"); 
   } else {
