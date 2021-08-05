@@ -1,8 +1,16 @@
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({extended: true}));
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
+
+// Below is the new encrypted cookie method:
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['someValue'],
+}))
+
 app.use( express.static( "views" ) );
 const bcrypt = require('bcrypt');
 const PORT = 8080; // default port 8080
@@ -67,15 +75,15 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user_id: req.cookies.user_id, users: users };
+  const templateVars = { user_id: req.session.user_id, users: users };
   res.render("urls_registration", templateVars)
 });
 
 app.get("/login", (req, res) => {
-  if (req.cookies.user_id !== undefined) {
+  if (req.session.user_id !== undefined) {
     res.redirect('/')
   } else {
-    const templateVars = { user_id: req.cookies.user_id, users: users };
+    const templateVars = { user_id: req.session.user_id, users: users };
     res.render("urls_login", templateVars)
   } 
 });
@@ -88,8 +96,8 @@ app.get("/hello", (req, res) => {
 // This is the home page
 // This showcases all the links and their shortcuts
 app.get("/urls", (req, res) => {
-  const customDatabase = urlForUser(req.cookies.user_id);
-  const templateVars = { urls: customDatabase, user_id: req.cookies.user_id, users: users };
+  const customDatabase = urlForUser(req.session.user_id);
+  const templateVars = { urls: customDatabase, user_id: req.session.user_id, users: users };
   res.render("urls_index", templateVars);
 });
 
@@ -106,10 +114,10 @@ app.get("/urls", (req, res) => {
 
 // This loads page where you can store new links
 app.get("/urls/new", (req, res) => {
-  if (req.cookies.user_id === undefined) {
+  if (req.session.user_id === undefined) {
     res.redirect('/')
   } else {
-    const templateVars = { user_id: req.cookies.user_id, users: users }
+    const templateVars = { user_id: req.session.user_id, users: users }
     res.render("urls_new", templateVars);
   }
 });
@@ -123,7 +131,7 @@ app.post('/login', (req,res) => {
     const checkResult = bcrypt.compareSync(req.body.password, users[user].password)
 
     if(users[user].email === req.body.email && checkResult) {
-      res.cookie('user_id', users[user].id);
+      req.session.user_id = users[user].id;
       return res.redirect('/urls')
     }
   }
@@ -135,7 +143,7 @@ app.post('/login', (req,res) => {
 
 // Delete existing cookie to logout
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 })
 
@@ -147,7 +155,7 @@ app.post("/urls", (req, res) => {
   // to see if there's a match with the one in database...
 
   for(const user in users) {
-    if (user === req.cookies.user_id) {
+    if (user === req.session.user_id) {
       let newShort = generateRandomString()
       // Use while loop to get new shortURL until it returns undefined
       // to prevent using same shortURL!
@@ -173,14 +181,14 @@ app.post("/urls", (req, res) => {
 // This retrieves the info from the urlDatabase to be displayed on urls/shortURL
 app.get("/urls/:shortURL", (req, res) => {
   
-  const customDatabase = urlForUser(req.cookies.user_id);
+  const customDatabase = urlForUser(req.session.user_id);
   if (customDatabase[req.params.shortURL] === undefined) {
     res.status(404);
     res.send("The short link is invalid!"); 
   } else {
     const templateVars = { shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL].longURL,
-      user_id: req.cookies.user_id,
+      user_id: req.session.user_id,
       users: users };
     res.render("urls_show", templateVars);
   }
@@ -205,7 +213,7 @@ app.post("/urls/:shortURL", (req, res) => {
   // Checks if the user that's changing the file has
   // permission or not.
   
-  if (req.cookies.user_id !== urlDatabase[req.params.shortURL].userID) {
+  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
     res.status(404);
     return res.send("You do not have permission for that.")
   }
@@ -223,7 +231,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   // Check if this is indeed the user that has permission
   // to delete this.
 
-  if (req.cookies.user_id !== urlDatabase[toDelete].userID) {
+  if (req.session.user_id !== urlDatabase[toDelete].userID) {
     res.status(404);
     return res.send("You do not have permission for that.")
   }
@@ -269,7 +277,7 @@ app.post("/register", (req, res) => {
 
   console.log(users);
 
-  res.cookie('user_id', randID);
+  req.session.user_id = randID;
   res.redirect('/urls');
 
 });
