@@ -4,6 +4,7 @@ app.use(express.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use( express.static( "views" ) );
+const bcrypt = require('bcrypt');
 const PORT = 8080; // default port 8080
 
 
@@ -34,12 +35,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "test1"
+    password: "$2b$10$gG8v0S8xI0dkl6WplLsTMOVBqWAVUj9u.qNTQQDYc1Wf5WcJyP3pW" // pw is: test1
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "$2b$10$wp4R39ebDEXFxkeybS7eYestUyHPN7vgNiNrAej9Md81MG75FDzD6" // pw is: test2
   }
 }
 
@@ -117,7 +118,11 @@ app.get("/urls/new", (req, res) => {
 app.post('/login', (req,res) => {
 
   for (const user in users) {
-    if(users[user].email === req.body.email && users[user].password === req.body.password) {
+    // Must run bcrypt compare to see that incoming password checks out
+    // when compared to the stored hashed value in user database.
+    const checkResult = bcrypt.compareSync(req.body.password, users[user].password)
+
+    if(users[user].email === req.body.email && checkResult) {
       res.cookie('user_id', users[user].id);
       return res.redirect('/urls')
     }
@@ -230,6 +235,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // This is to store registration information inside the 
 // users object.
 app.post("/register", (req, res) => {
+
   if(req.body.email === "" || req.body.password === "") {
     res.status(400);
     res.send("Please input email/password!"); 
@@ -247,13 +253,21 @@ app.post("/register", (req, res) => {
   while (users[randID] !== undefined) {
     randID = generateRandomString()
   }
+
+  // Use bcrypt to store the hashed password instead of
+  // the actual string value...
+
+  const hashPassword = bcrypt.hashSync(req.body.password, 10);
+
   const user = {
     "id": randID,
     "email": req.body.email,
-    "password": req.body.password
+    "password": hashPassword
   };
 
   users[randID] = user;
+
+  console.log(users);
 
   res.cookie('user_id', randID);
   res.redirect('/urls');
