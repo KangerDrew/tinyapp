@@ -4,13 +4,13 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Main Page"](./images/login.gf)
+!["Main Page"](https://github.com/KangerDrew/tinyapp/blob/master/docs/main.png)
 
-!["List of Abbreviated Links "](#)
+!["List of Abbreviated Links "](https://github.com/KangerDrew/tinyapp/blob/master/docs/list.png)
 
-!["Shortening New Link"](#)
+!["Shortening New Link"](https://github.com/KangerDrew/tinyapp/blob/master/docs/create.png)
 
-!["Editing Existing Link"](#)
+!["Editing Existing Link"](https://github.com/KangerDrew/tinyapp/blob/master/docs/editing.png)
 
 ## Dependencies
 
